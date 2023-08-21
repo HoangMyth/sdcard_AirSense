@@ -302,9 +302,11 @@ esp_err_t sdcard_createDeviceStructure(const char *deviceID)
     snprintf(logPath, sizeof(logPath), "%s/Log.log", systemPath);
     snprintf(dataPath, sizeof(dataPath), "%s/data.csv", timestampPath);
 
-    sdcard_createFile(firmwareJsonPath, "{\"version\": \"1.0\"}");
-    sdcard_createFile(firmwareBinPath, "");
-    sdcard_createFile(systemJsonPath, "{\"system\": \"info\"}");
-    sdcard_createFile(logPath, "");
-    sdcard_createFile(dataPath, "");
+    sdcard_createFile(firmwareJsonPath);
+    sdcard_createFile(firmwareBinPath);
+    sdcard_createFile(systemJsonPath);
+    sdcard_createFile(logPath);
+    sdcard_createFile(dataPath);
+
+    return ESP_OK;
 }
