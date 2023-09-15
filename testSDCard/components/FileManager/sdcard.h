@@ -16,19 +16,22 @@
 #include <sys/stat.h>
 #include "esp_vfs_fat.h"
 #include "sdmmc_cmd.h"
+#include "dirent.h"
 
 #define ID_SD_CARD 0x01
 
 #define SPI_DMA_CHAN    1
-#define ESP_ERROR_SD_INIT_FAILED            ((ID_SD_CARD << 12)|(0x00))
-#define ESP_ERROR_SD_OPEN_FILE_FAILED       ((ID_SD_CARD << 12)|(0x01))
-#define ESP_ERROR_SD_WRITE_DATA_FAILED      ((ID_SD_CARD << 12)|(0x02))
-#define ESP_ERROR_SD_READ_DATA_FAILED       ((ID_SD_CARD << 12)|(0x03))
-#define ESP_ERROR_SD_RENAME_FILE_FAILED     ((ID_SD_CARD << 12)|(0x04))
-#define ESP_ERROR_SD_REMOVE_FILE_FAILED     ((ID_SD_CARD << 12)|(0x05))
-#define ESP_ERROR_SD_CREAT_FOLDER_FAILED    ((ID_SD_CARD << 12)|(0x06))
-#define ESP_ERROR_SD_GET_FILEPATH_FAILED    ((ID_SD_CARD << 12)|(0x07))
-#define ESP_ERROR_SD_CREATE_FILE_FAILED     ((ID_SD_CARD << 12)|(0x08))
+#define ESP_ERROR_SD_INIT_FAILED                ((ID_SD_CARD << 12)|(0x00))
+#define ESP_ERROR_SD_OPEN_FILE_FAILED           ((ID_SD_CARD << 12)|(0x01))
+#define ESP_ERROR_SD_WRITE_DATA_FAILED          ((ID_SD_CARD << 12)|(0x02))
+#define ESP_ERROR_SD_READ_DATA_FAILED           ((ID_SD_CARD << 12)|(0x03))
+#define ESP_ERROR_SD_RENAME_FILE_FAILED         ((ID_SD_CARD << 12)|(0x04))
+#define ESP_ERROR_SD_REMOVE_FILE_FAILED         ((ID_SD_CARD << 12)|(0x05))
+#define ESP_ERROR_SD_CREAT_FOLDER_FAILED        ((ID_SD_CARD << 12)|(0x06))
+#define ESP_ERROR_SD_GET_FILEPATH_FAILED        ((ID_SD_CARD << 12)|(0x07))
+#define ESP_ERROR_SD_CREATE_FILE_FAILED         ((ID_SD_CARD << 12)|(0x08))
+#define ESP_ERROR_SD_CREATE_DEVICE_STRUCTURE    ((ID_SD_CARD << 12)|(0x09))
+
 // #define PIN_NUM_MISO 21
 // #define PIN_NUM_MOSI 19
 // #define PIN_NUM_CLK  18
@@ -126,7 +129,7 @@ esp_err_t sdcard_removeFile(const char *nameFile);
 
 esp_err_t sdcard_createFolder(const char *nameFolder);
 
-esp_err_t sdcard_getFilePath(const char *nameFile);
+esp_err_t sdcard_getFilePath(const char *fileName);
 
 esp_err_t sdcard_createFile(const char *fileName);
 

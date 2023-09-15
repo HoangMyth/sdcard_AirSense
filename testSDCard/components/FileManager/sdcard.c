@@ -208,6 +208,7 @@ esp_err_t sdcard_createFolder(const char *nameFolder)
     ESP_LOGI(__func__, "Creating folder: %s", _nameFolder);
 
     //check if Folder exists or not
+    struct stat st;
     if (stat(_nameFolder, &st) == 0)
     {
         ESP_LOGE(__func__, "Folder \"%s\" already exists.", _nameFolder);
@@ -221,28 +222,34 @@ esp_err_t sdcard_createFolder(const char *nameFolder)
     if (mkdir(_nameFolder, 0777) != 0) 
     {
         ESP_LOGE(__func__, "Failed to creat Folder");
-        return ESP_ERROR_SD_CREAT_FOLDER_FAILEDl;
+        return ESP_ERROR_SD_CREAT_FOLDER_FAILED;
     } else {
-        ESP_LOGI(__fun__, "Folder create successfully");
+        ESP_LOGI(__func__, "Folder create successfully");
         return ESP_OK;
     }
 }
 
 
-esp_err_t sdcard_getFilePath(const char *nameFile)
-{
-    char filePath[64];
-    sprintf(filePath, "%s/%s.txt", MOUNT_POINT nameFile);
 
-    //check if file exists or not
+esp_err_t sdcard_getFilePath(const char *fileName)
+{
+    char filePath[128]; 
+
+    snprintf(filePath, sizeof(filePath), "%s/%s", MOUNT_POINT, fileName);
+
     struct stat st;
-    if (stat(filePath, &st) != 0)
+    if (stat(filePath, &st) == 0)
     {
-        ESP_LOGE(__func__, "File \"%s\" not found.", filePath);
+        ESP_LOGI(__func__, "File \"%s\" found at path: %s", fileName, filePath);
+        return ESP_OK;
+    }
+    else
+    {
+        ESP_LOGE(__func__, "File \"%s\" not found.", fileName);
         return ESP_ERROR_SD_GET_FILEPATH_FAILED;
     }
-    return ESP_OK;
 }
+
 
 
 esp_err_t sdcard_createFile(const char *fileName)
@@ -275,38 +282,55 @@ esp_err_t sdcard_createFile(const char *fileName)
 }
 
 
+
 esp_err_t sdcard_createDeviceStructure(const char *deviceID) 
-{
-    char firmwarePath[100];
-    char timestampPath[100];
-    char systemPath[100];
-    char firmwareJsonPath[100];
-    char firmwareBinPath[100];
-    char systemJsonPath[100];
-    char logPath[100];
-    char dataPath[100];
+    {
+        #define MAX_PATH_LENGTH 100
+        if (strlen(deviceID) >= MAX_PATH_LENGTH) {
+            //Make sure deviceID does not exceed the maximum size for the path
+            return ESP_ERROR_SD_CREATE_DEVICE_STRUCTURE;
+        }
 
-    // Create folder structure
-    snprintf(firmwarePath, sizeof(firmwarePath), "%s/Firmware", deviceID);
-    snprintf(timestampPath, sizeof(timestampPath), "%s/Timestamp", deviceID);
-    snprintf(systemPath, sizeof(systemPath), "%s/Timestamp/system", deviceID);
+        char firmwarePath[MAX_PATH_LENGTH];
+        char timestampPath[MAX_PATH_LENGTH];
+        char systemPath[MAX_PATH_LENGTH];
+        char firmwareJsonPath[MAX_PATH_LENGTH];
+        char firmwareBinPath[MAX_PATH_LENGTH];
+        char systemJsonPath[MAX_PATH_LENGTH];
+        char logPath[MAX_PATH_LENGTH];
+        char dataPath[MAX_PATH_LENGTH];
 
-    sdcard_createFolder(firmwarePath);
-    sdcard_createFolder(timestampPath);
-    sdcard_createFolder(systemPath);
+        //Creat folder structure
+    
+        snprintf(firmwarePath, sizeof(firmwarePath), "%s/Firmware", deviceID);
+        snprintf(timestampPath, sizeof(timestampPath), "%s/Timestamp", deviceID);
+        snprintf(systemPath, sizeof(systemPath), "%s/Timestamp/system", deviceID);
 
-    // Create files
-    snprintf(firmwareJsonPath, sizeof(firmwareJsonPath), "%s/firmware.json", firmwarePath);
-    snprintf(firmwareBinPath, sizeof(firmwareBinPath), "%s/firmwareold.bin", firmwarePath);
-    snprintf(systemJsonPath, sizeof(systemJsonPath), "%s/system.json", systemPath);
-    snprintf(logPath, sizeof(logPath), "%s/Log.log", systemPath);
-    snprintf(dataPath, sizeof(dataPath), "%s/data.csv", timestampPath);
+        if (sdcard_createFolder(firmwarePath) != ESP_OK ||
+            sdcard_createFolder(timestampPath) != ESP_OK ||
+            sdcard_createFolder(systemPath) != ESP_OK) 
+        {
+            return ESP_ERROR_SD_CREATE_DEVICE_STRUCTURE; 
+        }
 
-    sdcard_createFile(firmwareJsonPath);
-    sdcard_createFile(firmwareBinPath);
-    sdcard_createFile(systemJsonPath);
-    sdcard_createFile(logPath);
-    sdcard_createFile(dataPath);
+        //Creat file
+        if (snprintf(dataPath, sizeof(dataPath), "%s/data.csv", timestampPath) >= sizeof(dataPath) ||
+            snprintf(firmwareJsonPath, sizeof(firmwareJsonPath), "%s/firmware.json", firmwarePath) >= sizeof(firmwareJsonPath) ||
+            snprintf(firmwareBinPath, sizeof(firmwareBinPath), "%s/firmwareold.bin", firmwarePath) >= sizeof(firmwareBinPath) ||
+            snprintf(systemJsonPath, sizeof(systemJsonPath), "%s/system.json", systemPath) >= sizeof(systemJsonPath) ||
+            snprintf(logPath, sizeof(logPath), "%s/Log.log", systemPath) >= sizeof(logPath)) 
+        {
+            return ESP_ERROR_SD_CREATE_DEVICE_STRUCTURE; 
+        }
 
-    return ESP_OK;
-}
+        if (sdcard_createFile(firmwareJsonPath) != ESP_OK ||
+            sdcard_createFile(firmwareBinPath) != ESP_OK ||
+            sdcard_createFile(systemJsonPath) != ESP_OK ||
+            sdcard_createFile(logPath) != ESP_OK ||
+            sdcard_createFile(dataPath) != ESP_OK) 
+        {
+            return ESP_ERROR_SD_CREATE_DEVICE_STRUCTURE;
+        }
+
+        return ESP_OK;
+    }
